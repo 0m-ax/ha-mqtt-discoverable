@@ -86,6 +86,15 @@ class TextInfo(EntityInfo):
     retain: Optional[bool] = None
     """If the published message should have the retain flag on or not"""
 
+class SelectInfo(EntityInfo):
+    """Information about the `text` entity"""
+
+    component: str = "select"
+    
+    options: list[str] = None
+    """The MQTT topic subscribed to receive state updates."""
+    retain: Optional[bool] = None
+    """If the published message should have the retain flag on or not"""
 
 class DeviceTriggerInfo(EntityInfo):
     """Information about the device trigger"""
@@ -217,3 +226,24 @@ class Text(Subscriber[TextInfo]):
 
         logger.info(f"Setting {self._entity.name} to {text} using {self.state_topic}")
         self._state_helper(str(text))
+
+
+class Select(Subscriber[SelectInfo]):
+    """Implements an MQTT text:
+    https://www.home-assistant.io/integrations/text.mqtt/
+    """
+
+    def select(self, option: str) -> None:
+        """
+        Update the text displayed by this sensor. Check that it is of acceptable length.
+
+        Args:
+            text(str): Value of the text configured for this entity
+        """
+        if not option in self._entity.options:
+            raise RuntimeError(
+                f"Option not in options"
+            )
+
+        logger.info(f"Setting {self._entity.name} to {option} using {self.state_topic}")
+        self._state_helper(str(option))
