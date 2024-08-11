@@ -210,6 +210,18 @@ class NumberInfo(EntityInfo):
     unit_of_measurement can be null."""
 
 
+class SelectInfo(EntityInfo):
+    """Information about the `text` entity"""
+
+    component: str = "select"
+
+    options: list[str] = None
+    """The MQTT topic subscribed to receive state updates."""
+    retain: Optional[bool] = None
+    """If the published message should have the retain flag on or not"""
+
+
+
 class DeviceTriggerInfo(EntityInfo):
     """Information about the device trigger"""
 
@@ -502,3 +514,24 @@ class Number(Subscriber[NumberInfo]):
 
         logger.info(f"Setting {self._entity.name} to {value} using {self.state_topic}")
         self._state_helper(value)
+
+
+class Select(Subscriber[SelectInfo]):
+    """Implements an MQTT text:
+    https://www.home-assistant.io/integrations/select.mqtt/
+    """
+
+    def select(self, option: str) -> None:
+        """
+        Update the selected option displayed by this sensor.
+
+        Args:
+            option(str): Value of the selected option configured for this entity
+        """
+        if not option in self._entity.options:
+            raise RuntimeError(
+                f"Option not in options"
+            )
+
+        logger.info(f"Setting {self._entity.name} to {option} using {self.state_topic}")
+        self._state_helper(str(option))
